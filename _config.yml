@@ -1,11 +1,11 @@
 title: Learning with Me
 tagline: Technical Blog Covering AI
-description: A place where I share my thoughts and experiences
-url: 'https://pramodith.github.io'
+description: Exploring artificial intelligence, machine learning, and software development through practical experiences and insights
+url: 'https://pramodith.github.io'  # Replace with your GitHub username
 baseurl: ''
 
-# The following should remain as is for Chirpy theme
-theme: jekyll-theme-chirpy
+# Theme settings
+remote_theme: jekyll-theme-chirpy
 plugins:
   - jekyll-paginate
   - jekyll-archives
