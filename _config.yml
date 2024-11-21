@@ -16,8 +16,29 @@ plugins:
 nav:
   - title: Home
     url: /
+  - title: Posts
+    url: /posts/
+  - title: Machine Learning
+    url: /categories/machine-learning/
+  - title: Categories
+    url: /categories/
+  - title: Tags
+    url: /tags/
+  - title: About
+    url: /about/
 
 # Author Information
 author:
-  name: Your Name
-  bio: A brief bio about yourself 
+  name: Pramodith B
+  bio: Software developer passionate about AI and machine learning
+  # Add your social media links
+  social:
+    linkedin: https://www.linkedin.com/in/pramodith/  # Optional
+
+# Jekyll Settings
+paginate: 10
+permalink: /:year/:month/:day/:title/
+
+# Additional settings for better SEO and site performance
+timezone: Ireland/Dublin  # Change to your timezone
+lang: en
