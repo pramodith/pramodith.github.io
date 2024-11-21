@@ -1,9 +1,6 @@
 ---
-layout: post
-title: "Welcome to My Technical Blog"
-date: 2024-03-20 12:00:00 -0500
-categories: [General, Introduction]
-tags: [welcome, blog, ai, machine-learning]
+layout: home
+title: Welcome to Learning with Me
 ---
 
 Welcome to my technical blog! I'm excited to start sharing my knowledge and experiences in the field of artificial intelligence and software development.
@@ -27,4 +24,11 @@ I believe in learning in public and sharing knowledge with the community. Throug
 3. Connect with fellow developers and AI enthusiasts
 4. Contribute to the tech community
 
-Stay tuned for more content coming soon! 
+## Latest Posts
+
+- [Understanding Linear Regression](/2024/03/21/understanding-linear-regression/) - A comprehensive guide to linear regression
+- More posts coming soon!
+
+## Get in Touch
+
+Feel free to reach out to me through [LinkedIn](https://www.linkedin.com/in/pramodith/). I'm always happy to connect with fellow tech enthusiasts! 
