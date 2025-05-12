@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Do LLMs know what Medical terms mean?"
+title: "Do LLMs know the meanings of Medical Terms?"
 date: 2025-05-12 10:00:00 +0000
 categories: [LLM, AI, Explaniable AI, Factual Understanding]
 tags: [LLM, AI, Explaniable AI, Factual Understanding]
@@ -9,7 +9,6 @@ author: Pramodith B
 by: Pramodith B
 ---
 
-# Do LLMs know the meaning of Medical Terms?
 
 There's been a never-ending debate about whether LLMs understand the data that they process, so much so that people have started to debate what _understanding_ something actually means. While some argue that LLMs are mere statistical machines that capture patterns in when and where different words are used, others claim that LLMs do indeed have a sense for the underlying meanings of words.
 
@@ -142,16 +141,5 @@ This work was inspired by my collaboration on a tangentially related project wit
     journal = {pramodith.github.io},
     year = {2025},
     url = {https://pramodith.github.io/posts/2025-05-12-medical-definition-understanding/}
-}
-```
-
-```
-@article{pramodith2024superposition,
-  title   = "Mechanistic Interpretability: What's superposition.",
-  author  = "Pramodith B",
-  journal = "pramodith.github.io",
-  year    = "2024",
-  month   = "Jul",
-  url     = "https://pramodith.github.io/posts/2024-11-30-superposition/"
 }
 ```
