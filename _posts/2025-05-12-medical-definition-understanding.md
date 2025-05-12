@@ -10,12 +10,12 @@ by: Pramodith B
 ---
 
 
-There's been a never-ending debate about whether LLMs understand the data that they process, so much so that people have started to debate what _understanding_ something actually means. While some argue that LLMs are mere statistical machines that capture patterns in when and where different words are used, others claim that LLMs do indeed have a sense for the underlying meanings of words.
+There's been a never-ending debate about whether LLMs understand the data they process, so much so that people have started to debate what _understanding_ something actually means. While some argue that LLMs are mere statistical machines that capture patterns of when and where different words are used, others claim that LLMs do indeed have a sense for the underlying meanings of words.
 
 One thing that's undeniable is that LLMs need to remember/store facts to perform well on most tasks. The definitions of
 words in my humble opinion are facts. Knowing the definitions of words lays down the foundation for an intelligence to be able to use them correctly in context and perhaps even understand them.
 
-Medicine is a domain where it's critical to know what different terms mean. If a doctor doesn't know the difference between a stroke and a heart attack, you'd be very skeptical about their ability to recognize and diagnose patients with suffering from one or the other. 
+Medicine is a domain where it's critical to know what different terms mean. If a doctor doesn't know the difference between a stroke and a heart attack, you'd be very skeptical about their ability to recognize and diagnose patients suffering from one or the other. 
 
 In this blog we'll evaluate different LLMs on their ability to recognize the definitions of medical terms.
 
@@ -27,7 +27,8 @@ The prompt used is:
 ```
 You are a word prediction model.You will be given a definition and the part of speech of the word (if available).You must predict the word being defined.
 
-Respond with just the word and no additional text.# Examples:
+Respond with just the word and no additional text.
+# Examples:
 Definition: A custom-made or tailored item.
 Part of speech: adjective
 Answer: Bespoke
@@ -72,10 +73,10 @@ The API has a soft limit of 1000 requests per day, we build a dataset of 1100 ex
 ## Model Evaluation
 We evaluate the models using the following metrics:
 
-* Exact Match: Case insensitvie exact match between the term and the prediction.
-* Fuzzy Match: A simple bi-directional `is in` check on the prediction and the medical term.
-* Synonym Match: Check if the predicted term matches any of the stems.
-* JudgeLLM Match: We use a JudgeLLM (GPT-4.1) to evaluate if the prediction and the medical term are synonymous given the definition. This helps us account for synonyms that don't share the same stem.
+* __Exact Match__: Case insensitvie exact match between the term and the prediction.
+* __Fuzzy Match__: A simple bi-directional `is in` check on the prediction and the medical term.
+* __Synonym Match__: Check if the predicted term matches any of the stems.
+* __JudgeLLM Match__: We use a JudgeLLM (GPT-4.1) to evaluate if the prediction and the medical term are synonymous given the definition. This helps us account for synonyms that don't share the same stem.
 
 It's also important to note that while computing fuzzy, synonym and fuzzy match are all inclusive of an exact match.
 ```
@@ -90,7 +91,7 @@ We leverage `vLLM` to run local open source models. All local models were run on
 
 
 ### Generation Parameters
-In order to simulate greedy decoding we set the temperature to 0 and top_p to 0.001. Such a small top_p almost guarantees that just the token with the highest logit is selected at each decoding step.
+In order to simulate greedy decoding we set the **temperature to 0 and top_p to 0.001**. Such a small top_p almost guarantees that the token with the highest logit is always selected at each decoding step.
 
 
 ### JudgeLLM Prompt
