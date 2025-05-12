@@ -47,7 +47,7 @@ The api requests require two arguments:
 1. 'word': The word whose definition is to be fetched
 2. 'api_key': The api key to authenticate the request
 
-In order to get a list of medical terms we use an [open source repo]( medical terms dataset from [here](https://github.com/glutanimate/wordlist-medicalterms-en/blob/master/wordlist.txt)) that's scraped medical terms from
+In order to get a list of medical terms we use an [open source repo](https://github.com/glutanimate/wordlist-medicalterms-en/blob/master/wordlist.txt) that's scraped medical terms from:
 
 * OpenMedSpel by e-MedTools
 * Raj&Co-Med-Spel-Chek by Rajasekharan N. of Raj&Co
