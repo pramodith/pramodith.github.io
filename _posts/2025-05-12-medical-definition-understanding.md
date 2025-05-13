@@ -21,7 +21,7 @@ Medicine is a domain where it's critical to know what different terms mean. Supp
 
 The ability to recognize definitions also helps us understand whether there's a need for building domain-specific LLMs or augmenting existing LLMs with additional tools, fine-tuning, grounding via rag etc., to acquire domain knowledge.
 
-In this blog, we'll evaluate different LLMs on their ability to **recognize the definitions of medical terms**.
+In this blog, we'll evaluate different LLMs on their ability to **recognize the definitions of medical terms**. All code corresponding to this blog can be found [here](https://github.com/pramodith/definition_understanding).
 
 ## Task Description
 
