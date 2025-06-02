@@ -203,3 +203,6 @@ jekyll-archives:
   permalinks:
     tag: /tags/:name/
     category: /categories/:name/
+google_analytics:
+  id: G-JX2CPERS26
+  enabled: true      # set to false in dev if needed
