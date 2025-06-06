@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "The one big beautiful GRPO Tutorial"
+title: "The One Big Beautiful GRPO Tutorial"
 date: 2025-06-04 10:00:00 +0000
 categories: [LLM, AI, RLHF, Reasoning Models, GRPO, PPO]
 tags: [LLM, AI, RLHF, Reasoning Models, GRPO, PPO]
@@ -923,10 +923,10 @@ We use the same set of sampling hyper-parameters for both benchmarking and train
 ```
 
 #### Results
-| Model Name                                         | Mean Accuracy Rewards | Mean Format Rewards      |
-|----------------------------------------------------|----------------------|-------------------------|
-| HuggingFaceTB/SmolLM2-1.7B-Instruct-Baseline       | 0.2927               | 0.2573                  |
-| HuggingFaceTB/SmolLM2-1.7B-Instruct-Pramodith-GRPO | 0.4355               | 0.4248                  |
+| Model Name                                         | Mean Accuracy Rewards | Mean Format Rewards |
+|----------------------------------------------------|----------------------|--------------------|
+| HuggingFaceTB/SmolLM2-1.7B-Instruct-Baseline       | 0.2927               | 0.2573             |
+| HuggingFaceTB/SmolLM2-1.7B-Instruct-Pramodith-GRPO | 0.4355               | 0.4248             |
 
 You can see that the training helped the model improve both in terms of the average accuracy as well as how well it sticks to the requested response template.
 
@@ -1103,7 +1103,7 @@ Until the next time, take care and be kind.
 ```bibtex
 @article{pramodith2025_grpo_tutorial,
     author = Pramodith B,
-    title = {The one big beautiful GRPO Tutorial},
+    title = {The One Big Beautiful GRPO Tutorial},
     journal = {pramodith.github.io},
     year = {2025},
     url = {https://pramodith.github.io/posts/2025-06-04-grpo-trainer/}
