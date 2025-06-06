@@ -894,11 +894,11 @@ grpo_loss = grpo_loss.mean()
 return grpo_loss
 ```
 
-The `completions_mask` will zero out the scores for the pad/eos tokens.
+The **completions_mask** will zero out the scores for the pad/eos tokens.
 
 We sum up all the scores of each of the tokens in a response to account for the $\sum_{t=1}^{|o_i|}$ term and then normalize the loss by the length of the completions. To account for the $1/|o_i|$ term in the equation.
 
-The $$\Bigg[\frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|}\Bigg]$$ term tells us that we need to average (sum up scores across all groups of the batch and then divide by the number of scores) the scores across all the groups. This is accomplished by the last line where we compute the mean.
+The $\Bigg[\frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|}\Bigg]$ term tells us that we need to average (sum up scores across all groups of the batch and then divide by the number of scores) the scores across all the groups. This is accomplished by the last line where we compute the mean.
 
 ## Training the Model
 That's it! We now have all the components needed to train our own reasoning model using GRPO. We can skip Step 12 of the algorithm since our reward models are not parameterized and are just rule based functions.
@@ -1013,12 +1013,7 @@ $$
 Loss = 0 + \beta * KLDiv
 $$
 
-What's the point of us coming up with the notion of **Verifiable Rewards** or even using any kind of reinforcement learning framework if at the end we just learn from the KL-divergence.
-
-Now coming up with a complicated formula just to see that in most tutorials and all papers the hyper-params they set reduces the formula to just a single terms seems quite overkill to me.
-
-If you've followed any TRL/Unsloth tutorial and trained a reasoning model you're model has only been learning from the KL-divergence because the default $\mu$ is 1 and the tutorials don't update it. There's literally no point to having the reward functions, most of the operations are just overkill ending up to 0.
-
+If you've followed any TRL/Unsloth tutorial and trained a reasoning model your loss is just the KL-divergence loss because the default $\mu$ is 1 and the tutorials don't update it.
 To prove this to yourself further, take any Unsloth notebook or a TRL tutorial and set the `beta` param to 0.0 and then train a reasoning model using the `GRPOTrainer` you'll see that the loss is always 0. **Since beta * KL = 0 and like we've shown the Policy Loss is always 0 too.**
 
 ### More Pecularities KL-div loss is 0 at step 0
@@ -1040,26 +1035,69 @@ $$
 KLDiv = 1 - log(1) - 1 => 1 - 0 - 1 = 0
 $$
 
-As we mentioned above the Policy Loss will always be 0 at step 0 since we're also on the first iteration. So the loss will be 0.0. **If the loss is 0, the models weights should not be updated** and if the models weights are not updated the KL-div loss at the next step will be 0 too which then should cascade into a perpetual loss of 0. **Which means that our model should not really train at all!**
-
-To prove this to yourself log out the loss at step 0 using the `GRPOTrainer` from TRL it'll always be 0.
+As we mentioned above the Policy Loss will always be 0 at step 0 since we're also on the first iteration. **So the loss will be 0.0**. To prove this to yourself log out the loss at step 0 using the `GRPOTrainer` from TRL it'll always be 0.
 
 
-### How on earth does it work then?
-We're now faced with two conundrums if the number of iterations i.e. $\mu$=1
-1. The Loss at step 0 of the algorithm will always be 0, but this means that our policy model should never be updated.
-2. The Policy Loss will always be 0, which means that our model doesn't have any information on the rewards that responses get, which defeats the whole purpose of Reinforcement Learning and having verifiable rewards.
+### How on earth does it all work then?
+We're now faced with two observations if the number of iterations i.e. $\mu$=1
+1. The Loss at step 0 of the algorithm will always be 0.
+2. The Policy Loss will always be 0, which means that our **loss value doesn't really care about our rewards**.
 
-My only explanation for how the model even starts to train is minor numerical precision errors. I think the losses are coming to near 0 but not exactly 0 which gives enough of a signal for the model to make minor updates to the weights of the model.
+The first thing to realize is that unlike more commonly used loss functions like CrossEntropy, Mean Square Error, KL divergence etc. the GRPO objective doesn't have a lower bound of 0. The GRPO objective can be both negative and positive.
 
-As to how the models start performing better on the task they are trained on I have no clue, I'll carry on this line of investigation and see if I can come up with any answers. My other hunch is that having a $\mu$ > 1, should greatly improve the training process.
+$$
+GRPO_{loss} = PolicyLoss + \beta*KLDiv
+$$
+Range of KLDiv is [0, inf] and the range of the Policy Loss is going to be 
+
+$$
+[(1-\epsilon) * Min(\hat{A}_{i,t}),(1+\epsilon) * Max(\hat{A}_{i,t})]
+$$
+
+This means that our optimization process doesn't stop when the loss is 0 unlike Cross Entropy/MSE etc., our loss value can go lower we can continue minimizing it!
+
+So things heavily depend on our Advantage scores which can be negative or positive.
+
+Next thing to bear in mind is that just because the value of the loss function is 0 doesn't mean that the gradients of the loss with respect to a parameter would be 0 too.
+
+The deriviative of the PolicyLoss at step=0 and the first iteration with respect to the models parameters would be:
+## Policy Loss Derivative
+
+The policy loss function is:
+
+$$\mathcal{L}_{\text{policy}}(\theta) = \frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \min \left(\frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})} \hat{A}_{i,t}, \text{clipped term}\right)$$
+
+At step 0 when $\mu = 1$, we have $\pi_\theta = \pi_{\theta_{\text{old}}}$, so the probability ratio equals 1 and the min operation selects the first term (since clipping doesn't affect a ratio of 1).
+
+The derivative with respect to $\theta$ is:
+
+$$\nabla_\theta \mathcal{L}_{\text{policy}}(\theta) = \frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \hat{A}_{i,t} \cdot \nabla_\theta \left(\frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})}\right)$$
+
+Since $\pi_{\theta_{\text{old}}}$ is constant with respect to $\theta$:
+
+$$\nabla_\theta \mathcal{L}_{\text{policy}}(\theta) = \frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \hat{A}_{i,t} \cdot \frac{1}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})} \cdot \nabla_\theta \pi_\theta(o_{i,t}|q, o_{i,<t})$$
+
+Using the identity $\nabla_\theta \pi_\theta = \pi_\theta \cdot \nabla_\theta \log \pi_\theta$:
+
+$$\nabla_\theta \mathcal{L}_{\text{policy}}(\theta) = \frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \hat{A}_{i,t} \cdot \frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})} \cdot \nabla_\theta \log \pi_\theta(o_{i,t}|q, o_{i,<t})$$
+
+At step 0, since $\pi_\theta = \pi_{\theta_{\text{old}}}$, the ratio equals 1:
+
+$$\nabla_\theta \mathcal{L}_{\text{policy}}(\theta) = \frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \hat{A}_{i,t} \cdot \nabla_\theta \log \pi_\theta(o_{i,t}|q, o_{i,<t})$$
+
+We can see that the derivative of $\mathcal{L}_{\text{policy}}(\theta)$ gets a signal from the Advantage scores and thereby the reward functions.
+
+The case of $\mu$ = 1 is still interesting, because there's no point in having an old policy. In some future work I'll consider experimenting with different values of $\mu$.
+
 
 ## Conclusion
 If you've made it to the end of this blog, you will have mastered the GRPO algorithm. You know what all the scary symbols mean and can now explain them if someone were to wake you up in the middle of the night.
 
-You know all the intricacies of how to implement it and the neat tricks that can be used to make it run efficiently.
+You know all the intricacies of how to implement it and the neat tricks that can be used to make it run efficiently. 
 
-You're also probably left a little confused as to how any of this actually works.
+You can also appreciate how the training loop of an RL algorithm is quite different from that of traditional pre-training or instruction tuning/SFT.
+
+Until the next time, take care and be kind.
 
 ## Cite as
 ```bibtex
