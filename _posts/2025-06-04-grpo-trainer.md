@@ -16,7 +16,7 @@ algorithm is dominantly used for training **reasoning** models. i.e. models that
 
 RL training steps/loops are far more complicated than pre-training or instruction-tuning because we have multiple models (active policy, old policy, reference) etc. and each of them play a role in computing the final loss.
 
-In this article, we break down GRPO and code it up step-by-step. Going through this article will enable AI/ML engineers and researchers to understand how GRPO works under the hood and all the small details and intricacies that one must consider. All code for this tutorial is available [here](). Here's a [link](https://arxiv.org/pdf/2402.03300) to the original paper that introduced GRPO.
+In this article, we break down GRPO and code it up step-by-step. Going through this article will enable AI/ML engineers and researchers to understand how GRPO works under the hood and all the small details and intricacies that one must consider. All code for this tutorial is available [here](https://github.com/pramodith/llm_exploration/tree/main/simple_grpo_trainer). Here's a [link](https://arxiv.org/pdf/2402.03300) to the original paper that introduced GRPO.
 
 Lets get started by understanding the GRPO function.
 
@@ -43,7 +43,7 @@ $$
 \Bigg]
 $$
 
-Now that's a frightening formula with way too many symbols. So let's break it down.
+That's a frightening formula with way too many symbols. So let's break it down.
 
 #### Number of models
 The formula lists out three different models:
@@ -62,7 +62,7 @@ The algorithm for GRPO from the paper is as shown below. ![GRPO Algorithm](/asse
 
 Alright let's get our hands dirty and start coding up our own GRPO trainer. We'll be using `PyTorch-Lightning` and HuggingFace's `transformers` library for this tutorial. Don't worry about all the other components of the equation and steps in the algorithm I'll be breaking them down and showing you how to implement them step-by-step.
 
-For the purpose of brevity the code snippets shown in the article will be as minimal as possible. If you'd like to see the full code, please refer to the [GitHub repository](https://github.com/your-repo).
+For the purpose of brevity the code snippets shown in the article will be as minimal as possible. If you'd like to see the full code, please refer to the [GitHub repository](https://github.com/pramodith/llm_exploration/tree/main/simple_grpo_trainer). Note that this code isn't designed for running in a multi-gpu scenario.
 
 ### Loading the models
 So as mentioned earlier, we need three models. The policy model, the old policy model and the reference model. However, thanks to a neat trick that we'll be going through we can get away with using just two sets of model weights. We'll be using the `transformers` library to load these models.
