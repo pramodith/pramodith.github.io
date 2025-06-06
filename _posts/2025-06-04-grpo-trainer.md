@@ -9,26 +9,39 @@ author: Pramodith B
 by: Pramodith B
 ---
 ## Introduction
-The launch of the DeepSeek family of models pushed the **Group Relative Policy Optimization (GRPO)** into the limelight among the family of Reinforcement Learning (RL) Algorithms used in training Large Language Models (LLMs). Ousting the likes of Proximal Policy Optimization (PPO) and Direct Prerference Optimization (DPO) from their podium. 
+The launch of the DeepSeek family of models pushed **Group Relative Policy Optimization (GRPO)**  into the limelight among the family of Reinforcement Learning (RL) Algorithms used to train Large Language Models (LLMs). Ousting the likes of Proximal Policy Optimization (PPO) and Direct Preference Optimization (DPO) from their podium. 
 
 While PPO and DPO gained traction for aligning the responses of LLMs i.e. making them safe and useful. The GRPO
-algorithm is dominantly used for training **reasoning** models. i.e. models that produce long chains of thoughts before providing a final answer.
+algorithm is predominantly used for training **reasoning** models. i.e. models that produce long chains of thoughts before providing a final answer.
 
 RL training steps/loops are far more complicated than pre-training or instruction-tuning because we have multiple models (active policy, old policy, reference) etc. and each of them play a role in computing the final loss.
 
-In this article, we break down GRPO and code it up step-by-step. Going through this article will enable AI/ML engineers and researchers to understand how GRPO works under the hood and all the small details and intricacies that one must consider. All code for this tutorial is available [here](https://github.com/pramodith/llm_exploration/tree/main/simple_grpo_trainer). Here's a [link](https://arxiv.org/pdf/2402.03300) to the original paper that introduced GRPO.
+In this article, I'll break down GRPO and code it up step-by-step. Going through this article will enable AI/ML engineers and researchers to understand how GRPO works under the hood and all the small details and intricacies that one must consider. All the code for this tutorial is available [here](https://github.com/pramodith/llm_exploration/tree/main/simple_grpo_trainer). Here's a [link](https://arxiv.org/pdf/2402.03300) to the original paper that introduced GRPO.
 
-Lets get started by understanding the GRPO function.
+## Why RL Trianing?
+Supervised/Instruction fine-tuning usually require the entire answer to be laid out to a model. For e.g. a chain of thought needs to be included in the ground truth of the dataset. Reinforcement Learning allows the model to explore different strategies to solve a task on its own without any explicitly provided chain of thought.
+
+The model essentially explores a bunch of strategies or in the case of LLMs chains-of-thought (CoT) and a reward signal rates each of these exploratory CoTs using which the model learns what the best strategies are for a task.
+
+The potential for unconstrained exploration expands the ways the model can learn to solve a problem, since the different strategies it's exposed to isn't limited to an annotated dataset.
 
 ## The GRPO Function
-The GRPO maximization function largely derives from the PPO algorithm itself, with the major difference lying in the 
-elimination for the need of a parameterized Value Function by sampling a **group** of responses for each query and computing the rewards for each of the responses using a set of rules or heuristics.
+The GRPO maximization function largely derives from the PPO algorithm itself, with the major difference lying in the elimination for the need of a parameterized Value Function. The Value Function is replaced by sampling a **group** of responses for each query and computing the rewards for each of the responses using a set of rules or heuristics.
 
-In a bid to make the rules robust and meaningful, GRPO is often used on tasks with **verifiable outcomes**. i.e. we can definitively state if a given response is correct or incorrect. This is why coding, math tasks are very friendly to GRPO. Answers can be verified by creating test cases or by using simple math principles like proof by substitution.
+In a bid to make the rules robust and meaningful, GRPO is often used on tasks with **verifiable outcomes**. i.e. we can definitively state if a given response is correct or incorrect. This is why coding, math tasks are very friendly to GRPO. Answers can be verified by creating test cases or by using simple math principles like proof by substitution even in the absence of labelled datasets.
 
 This is also why labelled datasets become re-usable by GRPO. Algorithms like PPO/DPO require pairwise comparisions of responses which usually means an additional round of labelling (human or synthetic). However, labelled datasets already have a ground truth answer/response to the tasks and a GRPO reward function can then just compare the policy LLMs response against the ground truth answer.
 
-#### Formula
+### What is a policy model?
+A policy model is the model that decides what action to take next in an environment. In the case of LLMs, the policy model is the model that determines which token should be generated next to best solve the query.
+
+
+### Algorithm
+The algorithm for GRPO from the paper is as shown below. ![GRPO Algorithm](/assets/img/favicons/2025-06-04-grpo-trainer/grpo_algorithm.png)
+
+### Formula
+
+The core of the algorithm lies in maximizing the GRPO objective which is formulated as:
 
 $$
 \mathcal{J}_{\mathrm{GRPO}}(\theta) = \mathbb{E}\Big[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\Big] \Bigg[
@@ -48,24 +61,21 @@ That's a frightening formula with way too many symbols. So let's break it down.
 #### Number of models
 The formula lists out three different models:
 - **Policy Model**: $\pi_\theta$ - This is the model that we are training i.e. the model whose parameters are being updated. It is the active policy.
-- **Old Policy Model**: $\pi_{\theta_{\text{old}}}$ - This is the model that we are using to compute the advantage function. It is the old policy i.e. the parameters of the model are frozen for _k_ steps and then updated to the new policy model.
-- **Reference Model**: $\pi_{\text{ref}}$ - This is the model that we are using to compute the KL divergence. It is a reference policy.
+- **Old Policy Model**: $\pi_{\theta_{\text{old}}}$ - This is the model that we are using to compute the advantage function. It is the old policy i.e. the parameters of the model are frozen for $\mu$ steps and then updated to the active policy.
+- **Reference Model**: $\pi_{\text{ref}}$ - In order to ensure that the policy model doesn't go crazy because of all its exploration we use a reference model as a baseline that the policy model shouldn't deviate too much from.
 
-Now usually, the **policy and old policy are initialized as two instances of the same model**. The reference model can be almost any model that we think can be a good guide/teacher for the policy model. The reference model should be a good conversational model and serve as a good baseline for the tasks at hand.
+ Usually the **policy and old policy are initialized as two instances of the same model**. The reference model can be almost any model that we think can be a good guide/teacher for the policy model. The reference model should be a good conversational model and serve as a good baseline for the tasks at hand.
 
-**KL divergence** is a measure of the distance between two probability distributions. The **KL divergence** loss ensures that our new policy does not deviate too much from the reference model helping with avoiding catastrophic forgetting. On the flip side, the KL divergence loss also limits how different the policy model can be from the reference model. So if the reference model is bad at a task it'd be hard for the policy model to become good at the task since it cannot deviate too much from the reference model.
-
-## Algorithm
-The algorithm for GRPO from the paper is as shown below. ![GRPO Algorithm](/assets/img/favicons/2025-06-04-grpo-trainer/grpo_algorithm.png)
+**KL divergence** is a measure of the distance between two probability distributions. The **KL divergence** loss ensures that our new policy does not deviate too much from the reference model helping with avoiding catastrophic forgetting and reward hacking. On the flip side, the KL divergence loss also limits how different the policy model can be from the reference model. So if the reference model is bad at a task it'd be hard for the policy model to become good at the task since it cannot deviate too much from the reference model.
 
 ## Code
 
 Alright let's get our hands dirty and start coding up our own GRPO trainer. We'll be using `PyTorch-Lightning` and HuggingFace's `transformers` library for this tutorial. Don't worry about all the other components of the equation and steps in the algorithm I'll be breaking them down and showing you how to implement them step-by-step.
 
-For the purpose of brevity the code snippets shown in the article will be as minimal as possible. If you'd like to see the full code, please refer to the [GitHub repository](https://github.com/pramodith/llm_exploration/tree/main/simple_grpo_trainer). Note that this code isn't designed for running in a multi-gpu scenario.
+For the purpose of brevity the code snippets shown in the article will be as minimal as possible. If you'd like to see the full code, please refer to the [GitHub repository](https://github.com/pramodith/llm_exploration/tree/main/simple_grpo_trainer). Note that this code only supports running the models on a single GPU.
 
 ### Loading the models
-So as mentioned earlier, we need three models. The policy model, the old policy model and the reference model. However, thanks to a neat trick that we'll be going through we can get away with using just two sets of model weights. We'll be using the `transformers` library to load these models.
+As mentioned earlier, we need three models. The policy model, the old policy model and the reference model. However, thanks to a neat trick that we'll be going through we can get away with  instantiating just two models, the reference and a policy model. We'll be using the `transformers` library to load these models.
 
 ```python
 class SimpleGRPOModule(pl.LightningModule):
@@ -84,12 +94,12 @@ class SimpleGRPOModule(pl.LightningModule):
         self.reference_model.eval()
 ```
 
-In the above code, we load the tokenizer and the models. The `policy_model` is the model that we will be training and the `reference_model` is the model that we will be using to compute the KL divergence loss. We set the `reference_model` to evaluation mode to disable dropout and other training-specific behaviors, since we will not be updating the reference model during training.
+ The code block loads the tokenizer and the models. The `policy_model` is the model that we will be training and the `reference_model` is the model that we will be using to compute the KL divergence loss. We set the `reference_model` to evaluation mode to disable dropout and other training-specific behaviors, since we'll not be updating the reference model during training.
 
 These steps cover the first 3 steps of the algorithm. Where the policy model is initialized and the reference model is set to match the policy model.
 
 ### Data Preparation
-Before we go deeper into the training loop, we need to prepare our data. We'll train a model on gsm8k dataset. A math dataset that's been widely used for training reasoning models. We'll be using the `datasets` library from HuggingFace to load the dataset and prepare it for training.
+Before we go deeper into the training loop, we need to prepare our data. We'll train a model on the [gsm8k](https://huggingface.co/datasets/openai/gsm8k) dataset. A math dataset that's been widely used for training reasoning models. We'll be using the `datasets` library from HuggingFace to load the dataset and prepare it for training.
 
 ```python
 from datasets import Dataset, load_dataset
@@ -179,7 +189,7 @@ Now we can create a `DataLoader` for the training and test datasets.
 ```python
 def create_dataloader(
     dataset: Dataset,
-    is_train: bool = False,
+    do_shuffle: bool = False,
     batch_size: int = 1,
 ):
     """
@@ -187,8 +197,8 @@ def create_dataloader(
 
     Args:
         dataset (Dataset): The dataset to create a dataloader for.
-        tokenizer (AutoTokenizer): The tokenizer to use.
-        is_train (bool): Whether the dataset is for training.
+        do_shuffle (bool): Whether the dataset should be shuffled or not.
+        batch_size (int): The batch size to use.
 
     Returns:
         DataLoader: The dataloader.
@@ -200,12 +210,11 @@ def create_dataloader(
     return dataloader
 ```
 
-Back to our equation and algorithm:
-
+Sampling from our dataloader covers **step 5** of the algorithm, 
 ```
 5: Sample a batch D𝑏 from D
 ```
-**Step 5** asks us to sample a batch of queries from our dataset this also lossely corresponds to the term
+since it asks us to sample a batch of queries from our dataset this also corresponds to the term
 $$q \sim P(Q)$$
 in the equation which corresponds to sampling a query from our pool of queries.
 
@@ -215,7 +224,7 @@ in the equation which corresponds to sampling a query from our pool of queries.
 7: Sample 𝐺 outputs {𝑜_𝑖} ∼ 𝜋𝜃𝑜𝑙𝑑 (· | 𝑞) for each question 𝑞 ∈ D
 ```
 - **Step 6** ask us to initialize the old policy model to the policy model.
-- **Step 7** then asks us to sample a G responses for each query from the old policy model. 
+- **Step 7** then asks us to sample G responses for each query using the old policy model. 
 
 In our equation this corresponds to the expression
 $$\{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)$$
@@ -247,10 +256,11 @@ Next we need to start filling out our `training_step` method that pytorch-lightn
 ```python
 def training_step(self, batch: Dict[str, List[str]], batch_idx: int):
     if self._step % self.num_iterations == 0:
+        """
+        Get the prompts and answers from the batch
+        The batch is a dictionary with keys "prompt" and "answer", values are lists of strings.
+        """
         inputs = self.prepare_inputs(batch)
-        # Get the prompts and answers from the batch
-        # The batch is a dictionary with keys "prompt" and "answer"
-        # and values are lists of strings.
         prompt_mask = inputs["attention_mask"]
         # Since we pad the prompts,
         # all the completions will start from the size of the padded input/prompt
@@ -267,7 +277,7 @@ Ignore the if statement for now, we'll come back to it later. The `prepare_input
 We'll keep track of the the token index at which the prompt ends, we'll use this to
 extract the completions from the model's output, getting rid of the input prompt and question. The completions will then be passed to our reward functions to compute the rewards for each response.
 
-The `get_responses_from_policy_model` method is a helper method that samples G/num_responses_per_example responses from the old policy model.
+The `get_responses_from_policy_model` method is a helper method that samples G (`num_responses_per_example`) responses from the old policy model.
 
 ```python
 def get_responses_from_policy_model(
@@ -301,6 +311,10 @@ def get_responses_from_policy_model(
         return completions, completion_ids
 ```
 
+Note how we're using `self.policy_model` for sampling the responses though the algorithm asked us to use the old policy, why we can do this will become clearer a little later but just keep this in mind.
+
+We return the raw completion text and the token ids corresponding to the completions. The token ids will be used later on to compute the GRPO objective.
+
 ### Computing the Rewards for each response
 Now that we have the responses from the policy model, we need to compute the rewards for each response. There's no limit on the number of reward functions that can be declared.
 
@@ -308,10 +322,9 @@ Now that we have the responses from the policy model, we need to compute the rew
 Step 8: Compute rewards {𝑟𝑖} for each sampled output 𝑜𝑖 by running the reward models
 ```
 
-In our case, we'll specify three reward functions:
-1. **Correctness Reward**: This reward function checks if the response is correct or not. It compares the response with the ground truth answer and returns a reward of 1 if the response is correct, 0.25 if the answer is an incorrect numeric value and 0 otherwise.
+In our case, we'll specify two reward functions:
+1. **Correctness Reward**: This reward function checks if the response is correct or not. It compares the response with the ground truth answer and returns a reward of 1 if the response is correct, 0 otherwise.
 2. **Formatting Reward**: This reward function checks if the response is formatted correctly. It checks if the response contains the `<think>` and `<answer>` tags and returns a reward of 0.1 for each tag present in the response + 0.1 for the answer being a number.
-3. **Length Reward**: This reward function checks the length of the response and returns a reward of 0.5 if the response is between 20 and 250 tokens.
 
 The algorithm uses the term $r_{\phi}$ to denote the reward model. The word model is used loosely here, it can correspond to any function that provides a score for the model's responses.
 
@@ -372,12 +385,6 @@ def format_reward(
         for match in matches
     ]
 
-
-def length_reward(completions_mask: torch.LongTensor, max_length: int = 250):
-    return [
-        0.5 if 20 <= completion_mask.sum().item() <= max_length else 0.0
-        for completion_mask in completions_mask
-    ]
 ```
 These are the lines that'd be added to the `training_step` function corresponding to Step 8 in the algorithm where we compute the rewards.
 
@@ -397,7 +404,9 @@ def training_step(self, batch: Dict[str, List[str]], batch_idx: int):
 ```
 
 The `_get_completions_mask` function masks out all the tokens that come after the very first `<eos>` token. We'll need this to compute the length of our completions.
-The **$\frac{1}{|o_i|}$** term in the equation corresponds to the length of each response in the group.
+
+$ |o_i| $ 
+in the equation corresponds to the length of each response in the group.
 
 ```python
 def _get_completions_mask(
@@ -428,7 +437,7 @@ def _get_completions_mask(
 
 We accomplish this by finding the first occurrence of the `<eos>` token in each response. The generate function pads all the responses to the same length with the `<eos>` token, so we use the cumsum function to create an incremental count for each occurence of the `<eos>` token. 
 
-We then create a mask that identifies all the tokens that come after the first `<eos>` token. We can then compute the length of each response by summing the mask along the sequence dimension.
+We then create a mask that identifies all the tokens that come after the first `<eos>` token. **We can then compute the length of each response by summing the mask along the sequence dimension.**
 
 We compute the rewards by calling each of our reward functions and returning the rewards as a tuple.
 
@@ -448,7 +457,7 @@ def compute_rewards(
         completions_mask (torch.LongTensor): The completions mask.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: The rewards for the sampled responses.
+        Tuple[torch.Tensor, torch.Tensor]: The rewards for the sampled responses.
     """
     # Repeat the answers for each response num_responses_per_example times
     answers = [
@@ -469,37 +478,32 @@ def compute_rewards(
         answers=sampled_responses,
         reference_format_regex=r"(<think>)[\s\S]*?(</think>)[\s\S]*?(<answer>)[\s\D]*(\d+)[\s\D]*(</answer>)",
     )
-    length_rewards = length_reward(completions_mask)
     correct_answer_rewards = torch.tensor(correct_answer_rewards).view(
         -1, self.num_responses_per_example
     )
     format_rewards = torch.tensor(format_rewards).view(
         -1, self.num_responses_per_example
     )
-    length_rewards = torch.tensor(length_rewards).view(
-        -1, self.num_responses_per_example
-    )
-
     return (
         correct_answer_rewards.to(self.device),
         format_rewards.to(self.device),
-        length_rewards.to(self.device),
     )
 ```
 
 ### Computing the Advantage Scores
-Now that we have the rewards for each response, we need to compute the advantage scores for each response. GRPO defines the advantage score to be the standardized reward for each response. The mean and stadard deviation of the rewards are computed across all responses in the group.
+Now that we have the rewards for each response, we need to compute the advantage scores for each response. GRPO defines the advantage score to be the standardized reward for each response. The mean and standard deviation of the rewards are computed across all responses for a given group/query.
 
 ```
 Step 9: Compute 𝐴_𝑖𝑡 for the 𝑡-th token of 𝑜_𝑖 through group relative advantage estimation
 ```
 
 **Step 9** of the algorithm asks us to compute the advantage scores for each response. The equation for the advantage score is given by:
+
 $$
 \hat{A}_{i,t} = \frac{r_{i,t} - \mathbb{u_i}}{\sqrt{\mathrm{Var}[r_i] + \epsilon}}
 $$
 
-Where:
+Where $\mathbb{u_i}$ is the mean of the rewards for a given group. 
 
 _Note: We compute the advantage scores over the sum of all rewards_.
 
@@ -522,9 +526,9 @@ def compute_advantage_score(self, rewards: torch.Tensor):
 ```
 
 ### Computing the Probability Scores of the Responses
-In our equation the terms ${\pi_\theta(o_{i,t}|q, o_{i,<t})}$, ${\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})}$, and ${\pi_{\theta_{\text{ref}}}(o_{i,t}|q, o_{i,<t})}$ correspond to the probability of the _t-th_ token in the _i-th_ response for a given query _q_ per the current policy, old policy and reference policy respectively.
+In our equation the terms ${\pi_\theta(o_{i,t}|q, o_{i,<t})}$, ${\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})}$, and ${\pi_{\theta_{\text{ref}}}(o_{i,t}|q, o_{i,<t})}$ correspond to the probability score of the _t-th_ token in the _i-th_ response/completion for a given query _q_ per the current, old policy and reference model respectively.
 
-This essentially means that we need to extract the logit scores for all of our responses for each of our models. Transformer models give us the logits for each token in a given input sequence in just one single forward pass through the model. We can use this to our advantage and extract the logits for all the responses and each of the models by passing in the batch of prompt + completions to each of the models. This is exactly what we do in the `_get_completion_log_prob_scores` method below.
+This means that we need to extract the logit scores for all of our responses from each of our models.**Transformer models give us the logits for each token in a given input sequence in just one single forward pass through the model.** We can use this to our advantage and extract the logits for all the responses and each of the models by passing in the batch of prompt + completions to each of the models. This is exactly what we do in the `_get_completion_log_prob_scores` method below.
 
 ```python
 def _get_completion_log_prob_scores(
@@ -592,9 +596,11 @@ def _get_completion_log_prob_scores(
 
 ```
 
-In the first three lines of the function, we concatenate the prompt i.e. system prompt + question with the completions. We also concatenate the attention masks for the prompt and completions so that the self-attention operation ignores all the padding tokens. We then pass this concatenated input to the model to get the logits for each token in the response.
+In the first three lines of the function, we concatenate the prompt i.e. system prompt + question with the completions. We also concatenate the attention masks for the prompt and completions so that the self-attention operation ignores all the `<pad>` tokens. We then pass this concatenated input to one of the models to get the logits for each token in the response.
 
-Notice how we only enable gradient computation for the active policy model. The old policy and reference model are set to evaluation mode and we disable gradient computation for them. This is because we do not want to update the weights of these models during training. The astute among you might've noticed that we are using the same `policy_model` for the case of `ModelType.Old` and `ModelType.Active`. We'll come back to this in a bit.
+Notice how we **only enable gradient computation for the active policy model**. The old policy and reference model are set to evaluation mode and we disable gradient computation for them. This is because we do not want to update the weights of these models during training. 
+
+The astute among you might've noticed that we are using the same `policy_model` for the case of `ModelType.Old` and `ModelType.Active`. We'll come back to this in a bit.
 
 ```python
 logit_scores = logit_scores[:, prompt_length - 1 : -1, :]
@@ -612,10 +618,14 @@ return log_prob_scores.view(
 ```
 
 Since we only need the logit scores for the completion tokens, we slice the logit scores to exclude the prompt tokens and the last token. 
-The last token is excluded because it corresponds to the next token prediction and we are not interested in that. Next,
-we scale the logits by the temperature parameter.In order to get the probability scores from the logits we need to apply the softmax function, we throw in a log transformation on top of the softmax for numerical stability.
+The last token is excluded because it corresponds to the next token prediction and we are not interested in that. 
 
-The `.logits` operation gives us the logit scores for the entire vocabulary at a given sequence positions. However, we only care about the logit scores of the tokens involved in each of the responses. So we use the `torch.gather` function to extract the logit scores for the completion tokens. Finally we reshape the logit scores to have the shape `(batch_size, num_responses_per_example, completions_length)`.
+Next,
+we scale the logits by the temperature parameter. In order to get the probability scores from the logits we need to apply the softmax function, we throw in a log transformation on top of the softmax for numerical stability.
+
+The `.logits` operation gives us the logit scores for the entire vocabulary at a given sequence positions. However, we only care about the logit scores of the tokens involved in each of the responses so, we use the `torch.gather` function to extract the logit scores for the completion tokens. Finally we reshape the logit scores to have the shape `(batch_size, num_responses_per_example, completions_length)`.
+
+Great! we now have all the logit scores of the completions from each of our models.
 
 ### Number of Iterations and the Case of the Old Policy Model
 
@@ -627,14 +637,14 @@ The `.logits` operation gives us the logit scores for the entire vocabulary at a
 **Step 6** tells us that the old policy model should be updated to the current policy for each new batch.
 
 ```
-10: for GRPO iteration = 1, . . . , 𝜇 do
-11:     Update the policy model 𝜋𝜃 by maximizing the GRPO objective (Equation 21)
+10:     for GRPO iteration = 1, . . . , 𝜇 do
+11:         Update the policy model 𝜋𝜃 by maximizing the GRPO objective (Equation 21)
 ```
 **Step 10 and 11** of the algorithm asks us to update the policy model for $\mu$ iterations. Each of these iterations/updates will be based on the **same batch of prompts and completions sampled from the old policy model.**
 
-When we combine these two requirements together, we can see that the old policy is nothing but the **current policy for GRPO iteration = 1**. So we'll sample responses from the current policy model whenever we're at the first GRPO iteration. These same set of responses will be used to compute the GRPO loss function for $\mu$ iterations.
+When we combine these two requirements together, we can see that the old policy is nothing but the **current policy for GRPO iteration = 1**. So we'll sample responses from the current policy model whenever we're at the first GRPO iteration. These same set of responses will be used to compute the GRPO loss function for the remaining $\mu - 1$ iterations.
 
-To compute the GRPO loss we need access to the logit scores of the current and old policy, and reference model. **However, for a given batch the logit scores of the old policy and reference model will always be the same since their weights are frozen.** This means that we only need to compute the logit scores for those two models for the very first GRPO iteration and we can re-use them for all subsequent GRPO iterations.
+To compute the GRPO loss we need access to the logit scores of the current and old policy, and reference model. **However, for a given batch the logit scores of the old policy and reference model will always be the same since their weights are frozen.** This means that we only need to compute the logit scores for those two models at the **very first GRPO iteration and we can re-use them for all subsequent GRPO iterations.**
 
 Let's take a look update the `training_step` method based on all of this information.
 
@@ -671,24 +681,17 @@ def training_step(self, batch: Dict[str, List[str]], batch_idx: int):
 
         completions_mask = self._get_completions_mask(completion_ids)
 
-        # logger.info(f"Sample question: {batch['question'][0]}")
-        # logger.info(f"Sample answer: {batch['answer'][0]}")
-        # logger.info(f"Sampled responses: {completions[0][0]}")
-        correct_answer_rewards, format_rewards, length_rewards = (
+        correct_answer_rewards, format_rewards = (
             self.compute_rewards(completions, batch["answer"], completions_mask)
         )
 
         # Log total rewards per step
         average_rewards = (
-            (correct_answer_rewards + format_rewards + length_rewards).mean().item()
+            (correct_answer_rewards + format_rewards).mean().item()
         )
         advantage_scores = self.compute_advantage_score(
-            correct_answer_rewards + format_rewards + length_rewards
+            correct_answer_rewards + format_rewards
         )
-        logger.info(f"Correct answer rewards: {correct_answer_rewards.mean(dim=1)}")
-        logger.info(f"Format rewards: {format_rewards.mean(dim=1)}")
-        logger.info(f"Length rewards: {length_rewards.mean(dim=1)}")
-
         # Repeat the prompts for each response
         prompt_ids = inputs["input_ids"].repeat_interleave(
             self.num_responses_per_example, dim=0
@@ -706,7 +709,7 @@ def training_step(self, batch: Dict[str, List[str]], batch_idx: int):
         # the same as the current policy's logit.
         if self.num_iterations > 1 and self._step % self.num_iterations == 0:
             # for the old policy model as well.
-            old_policy_prob_scores = self._get_completion_log_prob_scores(
+            old_policy_logit_scores = self._get_completion_log_prob_scores(
                 self.cache["prompt_ids"],
                 self.cache["prompt_mask"],
                 self.cache["completion_ids"],
@@ -716,18 +719,18 @@ def training_step(self, batch: Dict[str, List[str]], batch_idx: int):
         else:
             # The old policy model is the same as the current policy model so the outputs would
             # be the same.
-            old_policy_prob_scores = None
-        self.cache["old_policy_prob_scores"] = old_policy_prob_scores
+            old_policy_logit_scores = None
+        self.cache["old_policy_logit_scores"] = old_policy_logit_scores
 
         # Compute the forward pass with gradient calculation disabled.
-        reference_prob_scores = self._get_completion_log_prob_scores(
+        reference_logit_scores = self._get_completion_log_prob_scores(
             self.cache["prompt_ids"],
             self.cache["prompt_mask"],
             self.cache["completion_ids"],
             self.cache["completions_mask"],
             model_type=ModelType.Reference,
         )
-        self.cache["reference_prob_scores"] = reference_prob_scores
+        self.cache["reference_logit_scores"] = reference_logit_scores
 
     # Compute the forward pass with gradient calculation enabled.
     policy_prob_scores = self._get_completion_log_prob_scores(
@@ -738,14 +741,14 @@ def training_step(self, batch: Dict[str, List[str]], batch_idx: int):
         model_type=ModelType.Active,
     )
 
-    if self.cache["old_policy_prob_scores"] is None:
-        old_policy_prob_scores = policy_prob_scores.detach()
-        self.cache["old_policy_prob_scores"] = old_policy_prob_scores
+    if self.cache["old_policy_logit_scores"] is None:
+        old_policy_logit_scores = policy_prob_scores.detach()
+        self.cache["old_policy_logit_scores"] = old_policy_logit_scores
 
     loss = self.compute_grpo_loss(
         policy_prob_scores,
-        self.cache["old_policy_prob_scores"],
-        self.cache["reference_prob_scores"],
+        self.cache["old_policy_logit_scores"],
+        self.cache["reference_logit_scores"],
         self.cache["advantage_scores"],
         self.cache["completions_mask"].view(
             -1, self.num_responses_per_example, self.cache["completion_ids"].shape[-1]
@@ -764,7 +767,7 @@ def training_step(self, batch: Dict[str, List[str]], batch_idx: int):
     return loss
 ```
 
-We introduce a new cache dictionary to store the intermediate results that we need to compute the GRPO loss. This cache dictionary is used to store the prompts, completions, logit scores and advantage scores for each batch. All of these cached values can be used in subsequent iterations of the GRPO training loop.
+We introduce a new cache dictionary to store the intermediate results that we'll need to compute the GRPO loss. This cache will store the prompts, completions, logit scores and advantage scores for each batch. All of these cached values will be used in subsequent iterations of the GRPO training loop.
 
 The first if condition checks if we're at the first iteration of the GRPO training loop
 ```python
@@ -774,6 +777,25 @@ if self._step % self.num_iterations == 0:
 If we are, we prepare the inputs, sample the responses from the policy model, compute the rewards and advantage scores, and compute the logit scores for the reference model. All of these values are stored in the cache dictionary.
 
 For all subsequent iterations, we only compute the logit scores for the policy model and use the cached values for the old policy model and reference model.
+
+### Simulating Iterations
+To help with consolidating ones understanding let's simulate two iterations.
+
+#### Iteration 0
+1. Sample Policy Model For Responses and Logit Scores.
+2. Sample Reference Model For Logit Scores of Responses.
+3. At Iteration 0, $\pi_\theta = \pi_{\theta\text{old}}$ so we re-use the logit scores at step 1 for the old and current policy.
+4. Store responses, logit scores of policy model as `old_policy_logit_scores` and logits of reference model in the cache.
+5. Compute GRPO Objective and update the weights of the current policy
+
+#### Iteration 1
+1. Load responses from cache.
+2. Compute Logit Scores of the response of the updated i.e. current policy model.
+3. Load reference model logit scores from cache.
+4. Load the logit scores of the policy model from Iteration 0 i.e. the one we saved as `old_policy_logit_scores` as the old policy's logit scores.
+5. Compute GRPO Objective and update the weights of the current policy.
+
+**So by caching in the responses and logit scores of the policy model at Iteration 0 we can get rid of the need for a separate instance to represent the old policy.**
 
 In order to make sure that our dataloader behaves as desired when we have multiple GRPO iterations, we need to duplicate each record in our dataset the same number of times as the number of GRPO iterations. We accomplish this by the helper function `repeat_row_n_times`
 
@@ -785,11 +807,13 @@ def repeat_row_n_times(dataset: Dataset, n: int):
 
 ### Computing the GRPO Loss
 Alright time to dig into the GRPO loss function. It can be broken down as
+
 $$
-GRPO_{objective} = PolicyScore - \beta * KLDiv
+\text{GRPO}_{objective} = \text{PolicyScore} - \beta * \text{KLDiv}
 $$
 
 Where the KL divergence loss computed as
+
 $$
 \mathbb{D}_{\mathrm{KL}}\left[\pi_\theta \| \pi_{\mathrm{ref}}\right] = 
 \frac{\pi_{\mathrm{ref}}(o_{i,t}|q, o_{i,<t})}{\pi_\theta(o_{i,t}|q, o_{i,<t})} - \log \frac{\pi_{\mathrm{ref}}(o_{i,t}|q, o_{i,<t})}{\pi_\theta(o_{i,t}|q, o_{i,<t})} - 1
@@ -833,6 +857,7 @@ def compute_grpo_loss(
 ```
 
 The policy score is
+
 $$
 \min \left[
 \frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})} \hat{A}_{i,t},
@@ -845,8 +870,9 @@ $$
 $$
 
 The ratio of probability scores between the current policy and the old policy is a common term.
+
 $$
-X = \frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})}
+\text{X} = \frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})}
 \;
 $$
 
@@ -857,7 +883,7 @@ policy_ratio = torch.exp(policy_logprob_scores - old_policy_logprob_scores)
 We then need to perform an upper and lower clipping of the policy ratio.
 
 $$
-Y = \operatorname{clip}\left(
+\text{Y} = \operatorname{clip}\left(
 \frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t}|q, o_{i,<t})},
 1-\epsilon, 1+\epsilon
 \right)
@@ -871,7 +897,7 @@ Finally we need to compute the element-wise minimum of the policy ratio and the 
 
 It's important to note that the same advantage scores are applied to all the tokens of a model's response.
 $$
-min(X*\hat{A}_{i,t}, Y*\hat{A}_{i,t})
+\text{min}(X*\hat{A}_{i,t}, Y*\hat{A}_{i,t})
 $$
 
 ```python
@@ -896,9 +922,11 @@ return grpo_loss
 
 The **completions_mask** will zero out the scores for the pad/eos tokens.
 
-We sum up all the scores of each of the tokens in a response to account for the $\sum_{t=1}^{|o_i|}$ term and then normalize the loss by the length of the completions. To account for the $1/|o_i|$ term in the equation.
+$ \sum_{t=1}^{|o_i|}$ 
+tells us to sum up all the scores of each of the tokens in a response to account for  and then normalize the loss by the length of the completions.
 
-The $\Bigg[\frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|}\Bigg]$ term tells us that we need to average (sum up scores across all groups of the batch and then divide by the number of scores) the scores across all the groups. This is accomplished by the last line where we compute the mean.
+$ \Bigg[\frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|}\Bigg] $ 
+tells us that we need to average (sum up scores across all groups of the batch and then divide by the number of scores) the scores across all the groups. This is accomplished by the last line where we compute the mean.
 
 ## Training the Model
 That's it! We now have all the components needed to train our own reasoning model using GRPO. We can skip Step 12 of the algorithm since our reward models are not parameterized and are just rule based functions.
@@ -923,10 +951,11 @@ We use the same set of sampling hyper-parameters for both benchmarking and train
 ```
 
 #### Results
+
 | Model Name                                         | Mean Accuracy Rewards | Mean Format Rewards |
-|----------------------------------------------------|----------------------|--------------------|
-| HuggingFaceTB/SmolLM2-1.7B-Instruct-Baseline       | 0.2927               | 0.2573             |
-| HuggingFaceTB/SmolLM2-1.7B-Instruct-Pramodith-GRPO | 0.4355               | 0.4248             |
+|----------------------------------------------------|----------------------|----------------------|
+| HuggingFaceTB/SmolLM2-1.7B-Instruct-Baseline       | 0.2927               | 0.2573               |
+| HuggingFaceTB/SmolLM2-1.7B-Instruct-Pramodith-GRPO | 0.4355               | 0.4248               |
 
 You can see that the training helped the model improve both in terms of the average accuracy as well as how well it sticks to the requested response template.
 
@@ -960,17 +989,18 @@ When we plug this into the expression corresponding to the Policy Loss
 we'll see that 
 
 $$
-PolicyLoss = min(1*\hat{A}_{i,t}, clip(1, 1-\epsilon, 1+\epsilon)*\hat{A}_{i,t})
+\text{PolicyLoss} = min(1*\hat{A}_{i,t}, clip(1, 1-\epsilon, 1+\epsilon)*\hat{A}_{i,t})
 $$
 
 The clip term will always reduce to 1 since
+
 $$
 1-\epsilon < 1 < 1+\epsilon
 $$
 
 This means that
 $$
-PolicyLoss = \hat{A}_{i,t}
+\text{PolicyLoss} = \hat{A}_{i,t}
 $$
 
 This is a huge problem, because when we start averaging the loss over the groups **it'll always end up being 0.0.**
@@ -981,13 +1011,13 @@ Okay so we've established that the $PolicyLoss$ is always equal to the advantage
 Since all the tokens have the same score the mean PolicyLoss score for a given response is the same advantage score
 
 $$
-PolicyLoss_{completion\_i} = \frac{1}{T}\sum_{t=0}^T\hat{A}_{i,t} = \hat{A}_{i,t},   \text{ where T} = |o_i|
+\text{PolicyLoss}_{completion\_i} = \frac{1}{T}\sum_{t=0}^T\hat{A}_{i,t} = \hat{A}_{i,t},   \text{ where T} = |o_i|
 $$
 
 Now let's say that we have 4 completions per group and our batch size is 1. Our PolicyLoss Tensor would now look like
 
 $$
-PolicyLoss_{group} = [\hat{A}_{0}, \hat{A}_{1}, \hat{A}_{2}, \hat{A}_{3}]
+\text{PolicyLoss}_{group} = [\hat{A}_{0}, \hat{A}_{1}, \hat{A}_{2}, \hat{A}_{3}]
 $$
 
 So our group's policy loss is exactly the same as our advantage scores for a given group. Now let's recall that the formula for the Advantage Scores is
@@ -1001,16 +1031,16 @@ This is the standardization formula. This [formula](https://math.umd.edu/~mboyle
 So
 
 $$
-PolicyLoss = \frac{1}G * \sum PolicyLoss_{group}
+\text{PolicyLoss} = \frac{1}G * \sum PolicyLoss_{group}
 $$
 $$
-PolicyLoss = mean(PolicyLoss_{group}) = 0
+\text{PolicyLoss} = mean(PolicyLoss_{group}) = 0
 $$
 
 Which means that our total final loss would just end up being the KL-divergence between the policy and reference models.
 
 $$
-Loss = 0 + \beta * KLDiv
+\text{Loss} = 0 + \beta * \text{KLDiv}
 $$
 
 If you've followed any TRL/Unsloth tutorial and trained a reasoning model your loss is just the KL-divergence loss because the default $\mu$ is 1 and the tutorials don't update it.
@@ -1026,13 +1056,13 @@ $$
 Which means
 
 $$
-KLDiv =
+\text{KLDiv} =
 \mathbb{D}_{\mathrm{KL}}\left[\pi_\theta \| \pi_{\mathrm{ref}}\right] = 
 \frac{\pi_{\mathrm{ref}}(o_{i,t}|q, o_{i,<t})}{\pi_\theta(o_{i,t}|q, o_{i,<t})} - \log \frac{\pi_{\mathrm{ref}}(o_{i,t}|q, o_{i,<t})}{\pi_\theta(o_{i,t}|q, o_{i,<t})} - 1
 $$
 
 $$
-KLDiv = 1 - log(1) - 1 => 1 - 0 - 1 = 0
+\text{KLDiv} = 1 - log(1) - 1 => 1 - 0 - 1 = 0
 $$
 
 As we mentioned above the Policy Loss will always be 0 at step 0 since we're also on the first iteration. **So the loss will be 0.0**. To prove this to yourself log out the loss at step 0 using the `GRPOTrainer` from TRL it'll always be 0.
