@@ -206,3 +206,6 @@ jekyll-archives:
 google_analytics:
   id: G-JX2CPERS26
   enabled: true      # set to false in dev if needed
+
+plugins:
+  - jekyll-sitemap

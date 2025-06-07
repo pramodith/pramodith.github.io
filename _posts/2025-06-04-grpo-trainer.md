@@ -1,6 +1,7 @@
 ---
 layout: post
-title: "The One Big Beautiful GRPO Tutorial"
+title: "The One Big Beautiful Blog on Group Relative Policy Optimization (GRPO)"
+description: A step-by-step tutorial to code up your own GRPO Trainer.
 date: 2025-06-04 10:00:00 +0000
 categories: [LLM, AI, RLHF, Reasoning Models, GRPO, PPO]
 tags: [LLM, AI, RLHF, Reasoning Models, GRPO, PPO]
@@ -8,6 +9,8 @@ math: true  # Enable math equations rendering
 author: Pramodith B
 by: Pramodith B
 ---
+# Create your own GRPO Trainer
+
 ## Introduction
 The launch of the DeepSeek family of models pushed **Group Relative Policy Optimization (GRPO)**  into the limelight among the family of Reinforcement Learning (RL) Algorithms used to train Large Language Models (LLMs). Ousting the likes of Proximal Policy Optimization (PPO) and Direct Preference Optimization (DPO) from their podium. 
 
@@ -782,20 +785,22 @@ For all subsequent iterations, we only compute the logit scores for the policy m
 To help with consolidating ones understanding let's simulate two iterations.
 
 #### Iteration 0
-1. Sample Policy Model For Responses and Logit Scores.
-2. Sample Reference Model For Logit Scores of Responses.
-3. At Iteration 0, $\pi_\theta = \pi_{\theta\text{old}}$ so we re-use the logit scores at step 1 for the old and current policy.
-4. Store responses, logit scores of policy model as `old_policy_logit_scores` and logits of reference model in the cache.
-5. Compute GRPO Objective and update the weights of the current policy
+1. Sample Policy Model for responses and logit scores.
+2. Sample Reference Model for logit scores of those responses.
+3. At Iteration 0, $\pi_\theta = \pi_{\theta\text{old}}$ so we re-use the logit scores from step 1 for the old and current policy.
+4. Store responses, logit scores of the **policy model** as `old_policy_logit_scores` and logits of reference model in the cache.
+5. Compute GRPO Objective and update the weights of the current policy.
 
 #### Iteration 1
 1. Load responses from cache.
-2. Compute Logit Scores of the response of the updated i.e. current policy model.
+2. Compute logit scores of the loaded responses using the updated i.e. current policy model.
 3. Load reference model logit scores from cache.
-4. Load the logit scores of the policy model from Iteration 0 i.e. the one we saved as `old_policy_logit_scores` as the old policy's logit scores.
+4. Load the logit scores of the policy model from Iteration 0 i.e. the one we saved as `old_policy_logit_scores` to serve as the **old policy's** logit scores.
 5. Compute GRPO Objective and update the weights of the current policy.
 
-**So by caching in the responses and logit scores of the policy model at Iteration 0 we can get rid of the need for a separate instance to represent the old policy.**
+**So by caching the responses and logit scores of the policy model at Iteration 0 we can get rid of the need for a separate instance to represent the old policy.**
+
+#### Replicating batches in our dataloader.
 
 In order to make sure that our dataloader behaves as desired when we have multiple GRPO iterations, we need to duplicate each record in our dataset the same number of times as the number of GRPO iterations. We accomplish this by the helper function `repeat_row_n_times`
 
@@ -805,21 +810,28 @@ def repeat_row_n_times(dataset: Dataset, n: int):
 )
 ```
 
-### Computing the GRPO Loss
-Alright time to dig into the GRPO loss function. It can be broken down as
+## Computing the GRPO Loss
+Alright time to dig into the GRPO loss function. This section is going to be fairly math heavy, so buckle up. I promise it won't be very complicated/
+
+I've been using the terms _GRPO Objective and GRPO Loss_, let me clarify the difference. **The GRPO Loss is the negative of the GRPO Objective.** In Reinforcement Leanring the goal is to maximize a score in this case the goal is to **maximize the GRPO Objective**. However, most ML frameworks work by minimizing a loss, **so we negate the GRPO objective** call it the GRPO loss and minize it.
+
+The GRPO objective can be broken down into two key terms:
 
 $$
 \text{GRPO}_{objective} = \text{PolicyScore} - \beta * \text{KLDiv}
 $$
 
-Where the KL divergence loss computed as
+$\beta$ is a hyper-parameter. 
+
+### KL-Divergence
+The KL divergence loss computed as
 
 $$
 \mathbb{D}_{\mathrm{KL}}\left[\pi_\theta \| \pi_{\mathrm{ref}}\right] = 
 \frac{\pi_{\mathrm{ref}}(o_{i,t}|q, o_{i,<t})}{\pi_\theta(o_{i,t}|q, o_{i,<t})} - \log \frac{\pi_{\mathrm{ref}}(o_{i,t}|q, o_{i,<t})}{\pi_\theta(o_{i,t}|q, o_{i,<t})} - 1
 $$
 
-The first term is the ratio of probability scores of a given token in the response between the reference model and the current policy model. The second term is the log of the ratio of probability scores. The third term is a constant 1.
+The first term is the ratio of probability scores of a given token in the response between the reference model and the current policy model. The second term is the log of the ratio of probability scores. 
 
 Since we have the logit scores for each of the models and all the repsonses we can code this up as follows:
 
@@ -856,6 +868,13 @@ def compute_grpo_loss(
         )
 ```
 
+Remember that the scores that we computed in the `_get_completion_log_prob_scores` are the logs of the probability scores. So our implementation needs to transform the log probs back to their raw probability scores, which can be done via a simple `exp` operation.
+
+$$
+\exp^{log(p)} = p
+$$
+
+### Policy Socre
 The policy score is
 
 $$
@@ -868,6 +887,10 @@ $$
     \right) \hat{A}_{i,t}
 \right]
 $$
+
+$\epsilon$ is another hyper-parameter. On the whole the policy score tries to make sure that the current policy model produces higher probability scores for the tokens which lead to an outcome where the advantage/rewards are high and lower scores for the tokens which resulted in an outcome where the rewards were low.
+
+We perform clipping, in order to make sure that the policy model doesn't drastically drift away from its previous version and avpid reward hacking and/or catastrophic forgetting.
 
 The ratio of probability scores between the current policy and the old policy is a common term.
 
@@ -895,7 +918,7 @@ clipped_policy_loss = torch.clamp(
 ```
 Finally we need to compute the element-wise minimum of the policy ratio and the clipped policy ratio, multiplied by the advantage scores.
 
-It's important to note that the same advantage scores are applied to all the tokens of a model's response.
+It's important to note that the same advantage scores are applied to all the tokens for a given response.
 $$
 \text{min}(X*\hat{A}_{i,t}, Y*\hat{A}_{i,t})
 $$
@@ -923,10 +946,10 @@ return grpo_loss
 The **completions_mask** will zero out the scores for the pad/eos tokens.
 
 $ \sum_{t=1}^{|o_i|}$ 
-tells us to sum up all the scores of each of the tokens in a response to account for  and then normalize the loss by the length of the completions.
+tells us to sum up all the scores of each of the tokens in a response and then normalize the loss by the length of the completions, allowing us to negate any length bias.
 
 $ \Bigg[\frac{1}{G} \sum_{i=1}^G \frac{1}{|o_i|}\Bigg] $ 
-tells us that we need to average (sum up scores across all groups of the batch and then divide by the number of scores) the scores across all the groups. This is accomplished by the last line where we compute the mean.
+tells us that we need to average (sum up scores across all groups of the batch and then divide by the number of groups) the scores across all the groups. This is accomplished by the last line where we compute the mean.
 
 ## Training the Model
 That's it! We now have all the components needed to train our own reasoning model using GRPO. We can skip Step 12 of the algorithm since our reward models are not parameterized and are just rule based functions.
@@ -934,20 +957,26 @@ That's it! We now have all the components needed to train our own reasoning mode
 ### Benchmarking a Model
 Our experiments were run on a NVIDIA A100 GPU with 40GB of memory. We use HuggingFace's `SmolLM2-1.7B-Instruct` as our policy and reference mdoel. To establish a baseline for the model before any RL training we sample 8 responses for each question in the test split of the `gsm8k` dataset and compute the average rewards for each response.
 
-We then train a reasoning model using our Pytorch-Lightning implementation. The model is trained for 200 policy model updates, with a gradient accumulation of 4 and `num_iterations`($\mu$) set to 1. This means that we'll go through 800 questions and update the policy model every 4 questions. 
+We then train a reasoning model using our Pytorch-Lightning implementation. The model is trained for 200 policy model updates, with a gradient accumulation of 4, `num_iterations`($\mu$) set to 1 and a batch size of 1. This means that we'll go through 800 questions and update the policy model every 4 questions. 
 
 #### Hyper-parameters
 We use the same set of sampling hyper-parameters for both benchmarking and training the model, most of these also correspond to the default values used in the paper and/or the `TRL` [library](https://github.com/huggingface/trl).
 
 ```yaml
 - train_temperature: 0.9
-- temperature: 0.7
+- test_temperature: 0.7
 - top_p: 0.9
 - top_k: 50
 - max_gen_tokens: 300
 - num_responses_per_example: 8
 - beta: 0.04
 - epsilon: 0.2
+- train_batch_size: 1
+- gradient_accumulation_steps: 4
+- learning_rate: 5e-5
+- scheduler: linear_lr
+- warmup_steps: 0
+- gradient_clipping: 1.0
 ```
 
 #### Results
@@ -962,7 +991,9 @@ You can see that the training helped the model improve both in terms of the aver
 ## Curious Case of Number of Iterations = 1
 Almost all tutorials, the default setting in TRL and even the original paper report setting the number of iterations i.e. $\mu$ = 1.
 
-In my opinion this could be hindering the quality of the loss signal. Let's just focus on the $PolicyLoss$ term.
+In my opinion this could be hindering the quality of the loss signal. Let me explain why. 
+
+Let's just focus on the $PolicyScore$ term.
 
 $$
 \min \left[
@@ -989,7 +1020,7 @@ When we plug this into the expression corresponding to the Policy Loss
 we'll see that 
 
 $$
-\text{PolicyLoss} = min(1*\hat{A}_{i,t}, clip(1, 1-\epsilon, 1+\epsilon)*\hat{A}_{i,t})
+\text{PolicyLoss} = -\text{min}(1*\hat{A}_{i,t}, clip(1, 1-\epsilon, 1+\epsilon)*\hat{A}_{i,t})
 $$
 
 The clip term will always reduce to 1 since
@@ -1000,24 +1031,24 @@ $$
 
 This means that
 $$
-\text{PolicyLoss} = \hat{A}_{i,t}
+\text{PolicyLoss} = -\hat{A}_{i,t}
 $$
 
-This is a huge problem, because when we start averaging the loss over the groups **it'll always end up being 0.0.**
+But when we average the loss over the groups **it'll always end up being 0.0.**
 
 ### Policy Loss is always 0
 Okay so we've established that the $PolicyLoss$ is always equal to the advantage score for each token of the completion.
 
-Since all the tokens have the same score the mean PolicyLoss score for a given response is the same advantage score
+Since all the tokens have the same score, the mean PolicyLoss score for a given response is the same advantage score.
 
 $$
-\text{PolicyLoss}_{completion\_i} = \frac{1}{T}\sum_{t=0}^T\hat{A}_{i,t} = \hat{A}_{i,t},   \text{ where T} = |o_i|
+\text{PolicyLoss}_{completion\_i} = -\frac{1}{T}\sum_{t=0}^T\hat{A}_{i,t} = -\hat{A}_{i,t},   \text{ where T} = |o_i|
 $$
 
 Now let's say that we have 4 completions per group and our batch size is 1. Our PolicyLoss Tensor would now look like
 
 $$
-\text{PolicyLoss}_{group} = [\hat{A}_{0}, \hat{A}_{1}, \hat{A}_{2}, \hat{A}_{3}]
+\text{PolicyLoss}_{group} = -[\hat{A}_{0}, \hat{A}_{1}, \hat{A}_{2}, \hat{A}_{3}]
 $$
 
 So our group's policy loss is exactly the same as our advantage scores for a given group. Now let's recall that the formula for the Advantage Scores is
@@ -1031,10 +1062,10 @@ This is the standardization formula. This [formula](https://math.umd.edu/~mboyle
 So
 
 $$
-\text{PolicyLoss} = \frac{1}G * \sum PolicyLoss_{group}
+\text{PolicyLoss} = -\frac{1}G * \sum PolicyLoss_{group}
 $$
 $$
-\text{PolicyLoss} = mean(PolicyLoss_{group}) = 0
+\text{PolicyLoss} = -mean(PolicyLoss_{group}) = 0
 $$
 
 Which means that our total final loss would just end up being the KL-divergence between the policy and reference models.
@@ -1050,7 +1081,7 @@ To prove this to yourself further, take any Unsloth notebook or a TRL tutorial a
 When the reference model and the policy model are first initialized at the very first training step they have the exact same set of weights/parameters. This means that the KL-div loss is 0. Since 
 
 $$
-\frac{\pi_\theta(o_{i,t}|q, o_{i,<t})}{\pi_{\theta_{\text{ref}}}(o_{i,t}|q, o_{i,<t})} = 1.0
+\frac{\pi_{\theta_{\text{ref}}}(o_{i,t}|q, o_{i,<t})}{\pi_\theta(o_{i,t}|q, o_{i,<t})} = 1.0
 $$
 
 Which means
@@ -1065,33 +1096,37 @@ $$
 \text{KLDiv} = 1 - log(1) - 1 => 1 - 0 - 1 = 0
 $$
 
-As we mentioned above the Policy Loss will always be 0 at step 0 since we're also on the first iteration. **So the loss will be 0.0**. To prove this to yourself log out the loss at step 0 using the `GRPOTrainer` from TRL it'll always be 0.
+Since both the Policy Loss and GRPO Loss are 0 at the first training step **the GRPO loss will be 0.0**. To prove this to yourself log out the loss at step 0 using the `GRPOTrainer` from TRL it'll always be 0.
 
 
 ### How on earth does it all work then?
 We're now faced with two observations if the number of iterations i.e. $\mu$=1
 1. The Loss at step 0 of the algorithm will always be 0.
-2. The Policy Loss will always be 0, which means that our **loss value doesn't really care about our rewards**.
+2. The Policy Loss will always be 0 (since there's only one iteration for each batch/query), which means that our **loss value isn't affected by our rewards**.
 
+Now, having a loss function designed around **verifiable rewards** only to find out that the rewards don't contribute to the loss is quite befuddling.
+
+#### Parameter Updates Leverage the Rewards
 The first thing to realize is that unlike more commonly used loss functions like CrossEntropy, Mean Square Error, KL divergence etc. the GRPO objective doesn't have a lower bound of 0. The GRPO objective can be both negative and positive.
 
 $$
-GRPO_{loss} = PolicyLoss + \beta*KLDiv
+\text{GRPO}_{loss} = - \text{PolicyScore} + \beta*\text{KLDiv}
 $$
-Range of KLDiv is [0, inf] and the range of the Policy Loss is going to be 
+Range of KLDiv is **[0, inf]** and the range of the Policy Loss is going to be 
 
 $$
-[(1-\epsilon) * Min(\hat{A}_{i,t}),(1+\epsilon) * Max(\hat{A}_{i,t})]
+[(1-\epsilon) * \text{Min}(\hat{A}_{i,t}),(1+\epsilon) * \text{Max}(\hat{A}_{i,t})]
 $$
 
 This means that our optimization process doesn't stop when the loss is 0 unlike Cross Entropy/MSE etc., our loss value can go lower we can continue minimizing it!
 
-So things heavily depend on our Advantage scores which can be negative or positive.
+The range depends on the Advantage scores which can be negative or positive.
 
-Next thing to bear in mind is that just because the value of the loss function is 0 doesn't mean that the gradients of the loss with respect to a parameter would be 0 too.
+Next thing to bear in mind is that just because the value of the loss function is 0 **doesn't mean that the gradients of the loss with respect to a parameter would be 0 too.**
 
 The deriviative of the PolicyLoss at step=0 and the first iteration with respect to the models parameters would be:
-## Policy Loss Derivative
+
+### Policy Loss Derivative
 
 The policy loss function is:
 
@@ -1133,7 +1168,7 @@ Until the next time, take care and be kind.
 ```bibtex
 @article{pramodith2025_grpo_tutorial,
     author = Pramodith B,
-    title = {The One Big Beautiful GRPO Tutorial},
+    title = {"The One Big Beautiful Blog on Group Relative Policy Optimization (GRPO)},
     journal = {pramodith.github.io},
     year = {2025},
     url = {https://pramodith.github.io/posts/2025-06-04-grpo-trainer/}
