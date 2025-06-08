@@ -39,7 +39,7 @@ social:
 # Web Analytics Settings
 analytics:
   google:
-    id: # fill in your Google Analytics ID
+    id: G-JX2CPERS26
   goatcounter:
     id: # fill in your GoatCounter ID
   umami:
@@ -203,8 +203,6 @@ jekyll-archives:
     tag: /tags/:name/
     category: /categories/:name/
 
-google_analytics:
-  id: G-JX2CPERS26
 
 plugins:
   - jekyll-sitemap
