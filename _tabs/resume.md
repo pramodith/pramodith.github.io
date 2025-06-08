@@ -81,7 +81,10 @@ Explored SmolAgents and created an Agent that uses Pubmed/Biorxiv to identify re
 Explored LangGraph andd created an agent that automates the process of crawling company websites, extracting product and service information, classifying the company, and generating reports—including Google Docs—using AI and various integrations.
 
 ### AI Modeling and Training
+**[Create your own GRPO Trainer](https://pramodith.github.io/posts/grpo-trainer/)** A tutorial to implement your own GRPO Training Loop without using veRL, TRL etc. Also goes into the weeds of the math behind the GRPO objective.
+
 **[Benchmarking SOTA LLMs on Medical Definition Recognition](https://github.com/pramodith/definition_understanding)**
+
 **[Mechanistic Interpretability and Superposition 101](https://pramodith.github.io/posts/superposition/)** A 101 on how deep learning models can learn more features than dimensions through the concept of superposition.
 
 **[Exploring Sink Tokens](https://github.com/pramodith/llm_exploration/tree/main)**  
