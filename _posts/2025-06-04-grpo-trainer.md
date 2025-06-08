@@ -9,7 +9,7 @@ math: true  # Enable math equations rendering
 author: Pramodith B
 by: Pramodith B
 ---
-# Create your own GRPO Trainer
+![Create your own GRPO Trainer](/assets/img/favicons/2025-06-04-grpo-trainer/thumbnail.png)
 
 ## Introduction
 The launch of the DeepSeek family of models pushed **Group Relative Policy Optimization (GRPO)**  into the limelight among the family of Reinforcement Learning (RL) Algorithms used to train Large Language Models (LLMs). Ousting the likes of Proximal Policy Optimization (PPO) and Direct Preference Optimization (DPO) from their podium. 
