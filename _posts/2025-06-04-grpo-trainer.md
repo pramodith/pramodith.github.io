@@ -985,7 +985,7 @@ We use the same set of sampling hyper-parameters for both benchmarking and train
 |----------------------------------------------------|----------------------|----------------------|
 | HuggingFaceTB/SmolLM2-1.7B-Instruct-Baseline       | 0.2927               | 0.2573               |
 | HuggingFaceTB/SmolLM2-1.7B-Instruct-Pramodith-GRPO | 0.4355               | 0.4248               |
-| HuggingFaceTB/SmolLM2-1.7B-Instruct-TRL| 0.5147             | 0.4726               |
+| HuggingFaceTB/SmolLM2-1.7B-Instruct-TRL| 0.5147                           | 0.4726               |
 
 You can see that the training helped the model improve both in terms of the average accuracy as well as how well it sticks to the requested response template.
 

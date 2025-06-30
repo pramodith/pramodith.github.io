@@ -7,9 +7,10 @@ order: 5
 ## Work Experience
 **Freelance AI Engineer**, - Dublin, Ireland
 Apr 2025 - Present
-- Worked with the Founders of [Healiom](https://healiom.com/) and [Neurosonic](https://www.neuro-sonic.com/).
+- Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/) and [VizCo](https://www.linkedin.com/company/vizcoglobal/about/).
 - Benchmarked Different Embedding models on internal medical datasets of Healiom.
 - Implemented and Benchmarked different ML models and introduced AutoML for stenosis prediction for Neurosonic.
+- Compared the search results for different queries using Google Search vs GPT Search, developed a RAG pipeline to simulate and compare search results for Generative Engine Optimization.
 
 **Senior AI Engineer — NLP / LLMs / Multimodal**  
 LinkedIn, Dublin, Ireland — Aug 2022 to Nov 2024  
@@ -65,6 +66,17 @@ Agentic Workflows for Task Mining, ML based Insights Platform for Longitudinal G
 
 2. Blog about my projects and ideas on [Medium](https://medium.com/@buildingblocks).
 
+### Open Source Contributions
+**[TRL Contributions](https://github.com/huggingface/trl/pulls?q=is%3Apr+is%3Aclosed+author%3Apramodith)**
+Contributed to the development of the TRL library for reinforcement learning from human feedback (RLHF), including improvements to training algorithms and model architectures.
+
+**[Liger-Kernels Contributions](https://github.com/linkedin/Liger-Kernel/pulls?q=is%3Apr+is%3Aclosed+author%3Apramodith)**  
+Open-source contributions to RLHF kernel functions, including SimPO and CPO. Also wrote Triton kernels (e.g., GroupNorm) to accelerate training.  
+
+**[Klarity Contributions](https://github.com/klara-research/klarity/pulls?q=is%3Apr+is%3Aclosed+author%3Apramodith)**  
+Benchmaked how hallucinations can be detected using entropy metrics. Enforced structured outputs in JudgeLLMs and optimized static embeddings to stabilize token similarity results.
+
+
 ### AI Agents
 **[MCP Server to Order Coffee](https://github.com/pramodith/DevTerminalShopMCPServer)**
 Explored how to create custom MCP servers by playing around with DevTerminalShop which lets users order coffee using an API or the terminal.
@@ -90,12 +102,6 @@ Explored LangGraph andd created an agent that automates the process of crawling 
 **[Exploring Sink Tokens](https://github.com/pramodith/llm_exploration/tree/main)**  
 Researched how Transformer models (encoder and decoder) consistently direct attention to a small set of "sink" tokens like [CLS] or the first token. Found that dense self-attention may be unnecessary, suggesting more efficient LLM training strategies.  
 - Wrote [Medium articles](https://medium.com/@buildingblocks/llms-may-not-need-dense-self-attention-1fa3bf47522e) summarizing findings and experiments.
-
-**[Liger-Kernels Contributions](https://github.com/linkedin/Liger-Kernel)**  
-Open-source contributions to RLHF kernel functions, including SimPO and CPO. Also wrote Triton kernels (e.g., GroupNorm) to accelerate training.  
-
-**[Klarity Contributions](https://github.com/klara-research/klarity)**  
-Benchmaked how hallucinations can be detected using entropy metrics. Enforced structured outputs in JudgeLLMs and optimized static embeddings to stabilize token similarity results.
 
 **[SemEval 2020 — Humor Detection](https://aclanthology.org/2020.semeval-1.134/)**  
 Finished Top 5 in Task 7 of SemEval 2020. Built Siamese Transformer models to assess the funniness of edited news headlines.  
