@@ -7,10 +7,11 @@ order: 5
 ## Work Experience
 **Freelance AI Engineer**, - Dublin, Ireland
 Apr 2025 - Present
-- Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/) and [VizCo](https://www.linkedin.com/company/vizcoglobal/about/).
+- Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/), [VizCo](https://www.linkedin.com/company/vizcoglobal/about/) and Getty Images.
 - Benchmarked Different Embedding models on internal medical datasets of Healiom.
 - Implemented and Benchmarked different ML models and introduced AutoML for stenosis prediction for Neurosonic.
 - Compared the search results for different queries using Google Search vs GPT Search, developed a RAG pipeline to simulate and compare search results for Generative Engine Optimization.
+- Developed a Multi-Agent System to convert Gherkin Stype BDD specifications into Cypress UI tests at Getty Images.
 
 **Senior AI Engineer — NLP / LLMs / Multimodal**  
 LinkedIn, Dublin, Ireland — Aug 2022 to Nov 2024  
