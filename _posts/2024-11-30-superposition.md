@@ -6,6 +6,7 @@ categories: [LLM, AI, Explaniable AI, Mechanistic Interpretability, Superpositio
 tags: [LLM, AI, Explaniable AI, Mechanistic Interpretability, Superposition]
 math: true  # Enable math equations rendering
 author: Pramodith
+pin: true
 ---
 # Mechanistic Interpretability: What's superposition?
 

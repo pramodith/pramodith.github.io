@@ -8,6 +8,7 @@ tags: [LLM, AI, RLHF, Reasoning Models, GRPO, PPO]
 math: true  # Enable math equations rendering
 author: Pramodith B
 by: Pramodith B
+pin: true
 ---
 ![Create your own GRPO Trainer](/assets/img/favicons/2025-06-04-grpo-trainer/thumbnail.png)
 
