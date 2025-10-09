@@ -7,7 +7,8 @@ order: 5
 ## Work Experience
 **Freelance AI Engineer**, - Dublin, Ireland
 Apr 2025 - Present
-- Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/), [VizCo](https://www.linkedin.com/company/vizcoglobal/about/) and Getty Images.
+- Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/), [VizCo](https://www.linkedin.com/company/vizcoglobal/about/), Getty Images, (Format Techologies)[https://useformat.ai/].
+- Actively working on building and scaling AI Agent Workflows for Format Technologies.
 - Benchmarked Different Embedding models on internal medical datasets of Healiom.
 - Implemented and Benchmarked different ML models and introduced AutoML for stenosis prediction for Neurosonic.
 - Compared the search results for different queries using Google Search vs GPT Search, developed a RAG pipeline to simulate and compare search results for Generative Engine Optimization.
@@ -68,8 +69,8 @@ Agentic Workflows for Task Mining, ML based Insights Platform for Longitudinal G
 2. Blog about my projects and ideas on [Medium](https://medium.com/@buildingblocks).
 
 ### Open Source Contributions
-**[TRL Contributions](https://github.com/huggingface/trl/pulls?q=is%3Apr+is%3Aclosed+author%3Apramodith)**
-Contributed to the development of the TRL library for reinforcement learning from human feedback (RLHF), including improvements to training algorithms and model architectures.
+**[Core Contributor To TRL](https://github.com/huggingface/trl/pulls?q=is%3Apr+is%3Aclosed+author%3Apramodith)**
+An active core contributor to TRL the go-to open source library for most pre-training, mid-trainig and post-training algorithms like SFT, PPO, GRPO, DPO etc.
 
 **[Liger-Kernels Contributions](https://github.com/linkedin/Liger-Kernel/pulls?q=is%3Apr+is%3Aclosed+author%3Apramodith)**  
 Open-source contributions to RLHF kernel functions, including SimPO and CPO. Also wrote Triton kernels (e.g., GroupNorm) to accelerate training.  
