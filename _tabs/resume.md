@@ -7,7 +7,7 @@ order: 5
 ## Work Experience
 **Freelance AI Engineer**, - Dublin, Ireland
 Apr 2025 - Present
-- Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/), [VizCo](https://www.linkedin.com/company/vizcoglobal/about/), Getty Images, (Format Techologies)[https://useformat.ai/].
+- Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/), [VizCo](https://www.linkedin.com/company/vizcoglobal/about/), Getty Images, [Format Techologies](https://useformat.ai/).
 - Actively working on building and scaling AI Agent Workflows for Format Technologies.
 - Benchmarked Different Embedding models on internal medical datasets of Healiom.
 - Implemented and Benchmarked different ML models and introduced AutoML for stenosis prediction for Neurosonic.
@@ -95,7 +95,7 @@ Explored SmolAgents and created an Agent that uses Pubmed/Biorxiv to identify re
 Explored LangGraph andd created an agent that automates the process of crawling company websites, extracting product and service information, classifying the company, and generating reports—including Google Docs—using AI and various integrations.
 
 ### AI Modeling and Training
-**[Tiny Recursion Models](https://github.com/pramodith/tiny-recursion-models)**: Reproduction of Less is More: Recursive Reasoning with [Tiny Networks.](https://arxiv.org/pdf/2510.04871). The paper proposes a novel architecture that updates two different latent vectors in a recursive manner to achieve strong performance on tasks like Sudoku, ARC-Challenge using small models with <100M parameters.
+**[Tiny Recursion Models](https://github.com/pramodith/tiny-recursion-models)**: Reproduction of Less is More: Recursive Reasoning with [Tiny Networks](https://arxiv.org/pdf/2510.04871). The paper proposes a novel architecture that updates two different latent vectors in a recursive manner to achieve strong performance on tasks like Sudoku, ARC-Challenge using small models with <100M parameters.
 
 **[Create your own GRPO Trainer](https://pramodith.github.io/posts/grpo-trainer/)** A tutorial to implement your own GRPO Training Loop without using veRL, TRL etc. Also goes into the weeds of the math behind the GRPO objective.
 
