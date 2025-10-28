@@ -29,6 +29,10 @@ latest version of the **Chirpy** theme and the [CD][CD] workflow to here, so tha
 
 Check out the [theme's docs](https://github.com/cotes2020/jekyll-theme-chirpy/wiki).
 
+### Local Customizations
+
+This site adds a missing include `post-description.html` under `_includes/` to avoid a Liquid exception on GitHub Actions (the theme gem did not provide it in version 7.4.1). The include falls back to the first ~30 words of a post's content when no explicit `description` front matter is set. If upgrading the theme later and the upstream include becomes available, you can remove this local file.
+
 ## Contributing
 
 This repository is automatically updated with new releases from the theme repository. If you encounter any issues or want to contribute to its improvement, please visit the [theme repository][chirpy] to provide feedback.

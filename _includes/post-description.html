@@ -1,0 +1,16 @@
+{%- comment -%}
+Fallback description used in home layout when theme include missing.
+Logic: prefer explicit front matter 'description'; else use first 30 words of content without headings or images.
+{%- endcomment -%}
+{%- assign desc = page.description | default: post.description -%}
+{%- if desc and desc != '' -%}
+  {{ desc | strip }}
+{%- else -%}
+  {%- capture raw -%}{{ post.content | markdownify | strip_html | normalize_whitespace }}{%- endcapture -%}
+  {%- assign words = raw | split: ' ' -%}
+  {%- assign preview = '' -%}
+  {%- for w in words limit:30 -%}
+    {%- assign preview = preview | append: w | append: ' ' -%}
+  {%- endfor -%}
+  {{ preview | strip }}{% if words.size > 30 %}...{% endif %}
+{%- endif -%}
