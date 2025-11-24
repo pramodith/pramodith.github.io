@@ -205,3 +205,6 @@ jekyll-archives:
 
 plugins:
   - jekyll-sitemap
+
+# Allow future posts to be published
+future: true

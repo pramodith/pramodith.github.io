@@ -5,7 +5,7 @@ date: 2024-11-30 10:00:00 +0000
 categories: [LLM, AI, Explaniable AI, Mechanistic Interpretability, Superposition]
 tags: [LLM, AI, Explaniable AI, Mechanistic Interpretability, Superposition]
 math: true  # Enable math equations rendering
-author: Pramodith
+author: Pramodith B
 pin: true
 ---
 # Mechanistic Interpretability: What's superposition?

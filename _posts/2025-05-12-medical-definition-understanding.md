@@ -6,7 +6,6 @@ categories: [LLM, AI, Explaniable AI, Factual Understanding, Medical AI]
 tags: [LLM, AI, Explaniable AI, Factual Understanding, Medical AI]
 math: true  # Enable math equations rendering
 author: Pramodith B
-by: Pramodith B
 pin: true
 ---
 ![Do LLMs recognize Medical Definitions?](/assets/img/favicons/2025-05-12-medical-definition-understanding/llms_medical_definitions_title_image.png)

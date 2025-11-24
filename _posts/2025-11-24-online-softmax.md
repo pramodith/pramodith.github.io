@@ -5,7 +5,7 @@ date: 2025-11-24 00:00:00 +0000
 categories: [LLM, AI, Kernels, GPU, ML]
 tags: [LLM, AI, Kernels, GPU, ML]
 math: true  # Enable math equation rendering
-author: Pramodith
+author: Pramodith B
 pin: true
 description: "Understanding the mathematical principles behind online softmax, an optimization technique used in Flash Attention to efficiently compute softmax in chunks."
 ---
