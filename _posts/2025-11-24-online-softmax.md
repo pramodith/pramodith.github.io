@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The Math Behind Online Softmax"
-date: 2025-12-24 10:00:00 +0000
+date: 2025-11-24 00:00:00 +0000
 categories: [LLM, AI, Kernels, GPU, ML]
 tags: [LLM, AI, Kernels, GPU, ML]
 math: true  # Enable math equation rendering
