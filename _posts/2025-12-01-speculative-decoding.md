@@ -255,7 +255,7 @@ In the very first iteration, this'd be the original prompt + the K draft tokens 
 Remember that in auto-regressive generation we only need the KV-values of all previous tokens to generate the next token. This means that the token that's been generated most recently hasn't gone through a forward pass of the model yet to populate it's KV-cache.
 
 
-![KV-Cache Viz](./kv-cache.png)
+![KV-Cache Viz](/assets/img/favicons/2025-12-01-speculative-decoding/kv-cache.png)
 
 Notice how in the image above, the token `be` isn't in the KV-cache yet since it was just generated. [Image source](https://huggingface.co/blog/continuous_batching)
 
