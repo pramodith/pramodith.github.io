@@ -1,3 +1,15 @@
+---
+layout: post
+title: "Speculative Decoding Tutorial"
+date: 2025-12-01 00:00:00 +0000
+categories: [LLM, AI, Inference Optimization, ML]
+tags: [LLM, AI, Inference Optimization, ML]
+math: true  # Enable math equation rendering
+author: Pramodith B
+pin: true
+description: "A tutorial on implementing speculative decoding, an inference optimization technique for LLMs, using PyTorch and Hugging Face Transformers."
+---
+
 # Speculative Decoding Tutorial
 Speculative decoding is a technique used to speed up the generation of tokens from a generative deep learning model. The main idea is to leverage a smaller model often referred to as the _"draft model_" to generate K draft tokens auto-regressively. The target model i.e. the model that we actually want to use for generation then scores these K tokens in parallel, and we accept or reject them based on some criteria.
 
