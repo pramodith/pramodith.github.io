@@ -95,6 +95,8 @@ Explored SmolAgents and created an Agent that uses Pubmed/Biorxiv to identify re
 Explored LangGraph andd created an agent that automates the process of crawling company websites, extracting product and service information, classifying the company, and generating reports—including Google Docs—using AI and various integrations.
 
 ### AI Modeling and Training
+**[Speculative Decoding Tutorial](https://pramodith.github.io/posts/speculative-decoding/)**: A step-by-step guide to implement Speculative Decoding from scratch using PyTorch and Transformers library.
+
 **[The Math Behind Online Softmax](https://pramodith.github.io/posts/online-softmax/)**: Understanding the math behind online softmax, an optimization technique used in Flash Attention to efficiently compute softmax in chunks.
 
 **[Tiny Recursion Models](https://github.com/pramodith/tiny-recursion-models)**: Reproduction of Less is More: Recursive Reasoning with [Tiny Networks](https://arxiv.org/pdf/2510.04871). The paper proposes a novel architecture that updates two different latent vectors in a recursive manner to achieve strong performance on tasks like Sudoku, ARC-Challenge using small models with <100M parameters.
