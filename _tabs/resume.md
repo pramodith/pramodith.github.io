@@ -134,8 +134,11 @@ Manipal Institute of Technology, India — 2017
 ## Publications
 
 - [LMML at SemEval-2020 Task 7](https://aclanthology.org/2020.semeval-1.134/) — Rated humor in edited news headlines using Siamese Transformers, SemEval 2020.  
-- [Question Answering with EOL](https://aaai.org/Symposia/Fall/fall18symposia.php) — Fall AAAI Symposium 2018  
+- [Question Answering with EOL](https://www.semanticscholar.org/paper/Question-Answering-with-Encyclopedia-of-Life%3A-Ballapuram-Cassion/17cc2b0b6775bc615fe6bad3f3a8d4192de9ca82#cited-papers) — Fall AAAI Symposium 2018  
 - [Optic Disc Approximation](https://www.ijert.org/research/optic-disc-approximation-using-an-ensemble-of-processing-methods-IJERTV5IS060456.pdf) — IJERT, 2016
+
+## Patents
+- [Building and using target-based sentiment models](https://patents.google.com/patent/US12321701B2/en)
 
 ## Skills
 
@@ -144,7 +147,7 @@ Manipal Institute of Technology, India — 2017
 - **Data Engineering:** Snowflake, Matillion, Spark, Ray  
 - **Tools:** Git, Docker, Azure, Jupyter, VSCode, AWS  
 - **Research Areas:** NLP, LLMs, Attention Mechanisms, Reinforcement Learning, Hallucination Detection
-- **Libraries/Frameworks**: Pytorch, Pytorch-Lightning, TRL, Transformers, EmbedAnything, Sentence Transformers,
+- **Libraries/Frameworks**: Pytorch, Pytorch-Lightning, TRL, Transformers, Sentence Transformers,
 Langchain, LLamaIndex, SmolAgents, Crew.ai, LangGraph, LiteLLM, Sklearn, Tensorflow, Keras, Pinecone, Together.ai
 ---
 _Connect with me on [LinkedIn](https://www.linkedin.com/in/pramodith/)._
