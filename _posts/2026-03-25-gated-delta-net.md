@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Gated Delta Net Attention: A Deep Dive into the Linear Attention Mechanism Powering Qwen3.5"
-date: 2026-04-25 00:00:00 +0000
+date: 2026-03-25 00:00:00 +0000
 categories: [LLM, AI, Inference Optimization, ML, Qwen3.5]
 tags: [LLM, AI, Inference Optimization, ML, Qwen3.5]
 math: true  # Enable math equation rendering
@@ -224,7 +224,7 @@ interact(
 
 #### $\beta$ = 2, Householder Transformation
 
-![When beta = 2](/assets/img/favicons/2026-04-25-gated-delta-net/householder_beta_2.png)
+![When beta = 2](/assets/img/favicons/2026-03-25-gated-delta-net/householder_beta_2.png)
 
 In the plot above we have an input vector $v$ along the y-axis and a vector $m$ at a 45 degree angle. The dashed line represents the plane orthogonal to $m$. The red dashed vector is the result of multiplying $v$ with the matrix $(I - \beta mm^\top)$
 
@@ -232,7 +232,7 @@ When $\beta = 2$, we have a pure Householder transformation. $v$ is reflected ac
 
 #### $\beta$ = 1, Projection Transformation
 
-![When beta = 1](/assets/img/favicons/2026-04-25-gated-delta-net/householder_beta_1.png)
+![When beta = 1](/assets/img/favicons/2026-03-25-gated-delta-net/householder_beta_1.png)
 
 When $\beta = 1$, we have a projection transformation. In this case, the vector gets projected onto the plane orthogonal to $m$.
 
