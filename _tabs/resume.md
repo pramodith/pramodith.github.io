@@ -5,8 +5,11 @@ icon: fas fa-user
 order: 5
 ---
 ## Work Experience
+**Member of Technical Staff**
+Stealth, Jan 2026 - Present
+
 **Freelance AI Engineer**, - Dublin, Ireland
-Apr 2025 - Present
+Apr 2025 - Nov 2025
 - Worked with the Founders of [Healiom](https://healiom.com/), [Neurosonic](https://www.neuro-sonic.com/), [VizCo](https://www.linkedin.com/company/vizcoglobal/about/), Getty Images, [Format Techologies](https://useformat.ai/).
 - Actively working on building and scaling AI Agent Workflows for Format Technologies.
 - Benchmarked Different Embedding models on internal medical datasets of Healiom.
