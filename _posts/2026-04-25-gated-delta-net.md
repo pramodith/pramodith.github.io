@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Gated Delta Net Attention: A Deep Dive into the Linear Attention Mechanism Powering Qwen3.5"
-date: 2025-12-01 00:00:00 +0000
+date: 2026-04-25 00:00:00 +0000
 categories: [LLM, AI, Inference Optimization, ML, Qwen3.5]
 tags: [LLM, AI, Inference Optimization, ML, Qwen3.5]
 math: true  # Enable math equation rendering
